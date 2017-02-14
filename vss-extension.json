@@ -1,0 +1,85 @@
+{
+    "manifestVersion": 1,
+    "id": "vsts-extensions-VelocityExtensions",
+    "version": "1.0.99",
+    "name": "Velocity Widget",
+    "description": "Samples containing different widgets extending dashboards",
+    "publisher": "NormanMurrin-PSCGroup",
+    "targets": [
+                  {
+                      "id": "Microsoft.VisualStudio.Services"
+                  }
+              ],
+        "icons": {
+            "default": "img/logo.png"
+         },
+            "contributions": [
+                {
+                    "id": "VelocityWidget",
+                    "type": "ms.vss-dashboards-web.widget",
+                    "description": "Adds a 'Velocity' widget to Dashboard.",
+                    "targets": [
+                        "ms.vss-dashboards-web.widget-catalog",
+                        ".VelocityWidget.Configuration"
+                        ],
+                    "properties": {
+                        "name": "Velocity",
+                        "description": "Velocity widget",
+                        "catalogIconUrl:": "img/icon.png",
+                        "previewImageUrl": "img/preview.png",
+                        "order": 99,
+                        "supportedSizes": [
+                            {
+                                "rowSpan": 1,
+                                "columnSpan": 1
+                            },
+                            {   "rowSpan": 1,
+                                "columnSpan": 2
+                            }
+                        ],
+                        "uri": "velocity.html",
+                        "isNameConfigurable": true,
+                        "supportedScopes": ["project_team"]
+                    }
+                },
+                {
+                  "id": "VelocityWidget.Configuration",
+                  "type": "ms.vss-dashboards-web.widget-configuration",
+                  "targets": [ "ms.vss-dashboards-web.widget-configuration" ],
+                  "properties": {
+                    "name": "VelocityWidget Configuration",
+                    "description": "Configures VelocityWidget",
+                    "uri": "velocity-widget-configuration.html"
+                  }
+                }
+            ],
+            "scopes": [
+                "vso.work"
+            ],
+            "files": [
+                {
+                    "path": "velocity.html", "addressable": true
+                },
+                {
+                    "path": "velocity-widget-configuration.html", "addressable": true
+                },
+                {
+                    "path": "sdk/scripts/VSS.SDK.min.js", "addressable": true
+                },
+                {
+                    "path": "img/logo.png", "addressable": true
+                },
+                {
+                    "path": "img/preview.png", "addressable": true
+                },
+                {
+                    "path": "img/CatalogIcon.png", "addressable": true
+                },
+                {
+                    "path": "sdk/scripts/jquery.simplecolorpicker.js", "addressable": true
+                },
+                {
+                    "path": "css/jquery.simplecolorpicker.css", "addressable": true
+                }
+            ]
+        }

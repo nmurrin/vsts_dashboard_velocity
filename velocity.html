@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="sdk/scripts/VSS.SDK.min.js"></script>
+
+        <script type="text/javascript">
+            VSS.init({
+                explicitNotifyLoaded: true,
+                usePlatformStyles: true
+            });
+
+            VSS.require(["TFS/Dashboards/WidgetHelpers", "TFS/WorkItemTracking/RestClient"], function (WidgetHelpers, TFS_Wit_WebApi) {
+                WidgetHelpers.IncludeWidgetStyles();
+                VSS.register("VelocityWidget", function () {
+
+                  var projectId = VSS.getWebContext().project.id;
+
+                  var query = {
+                          query: "SELECT [System.AssignedTo] FROM WorkItem WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.State] IN ('Closed', 'Done')"
+                      };
+
+                  var getQueryInfo = function (widgetSettings) {
+
+                          return TFS_Wit_WebApi.getClient().queryByWiql(query, projectId)
+                              .then(function(result) {
+
+                                var openWorkItems = result.workItems.map(function (wi) { return wi.id });
+
+                                return TFS_Wit_WebApi.getClient().getWorkItems(openWorkItems)
+                                  .then(function(workItems) {
+
+                                      var iterationMap = {};
+                                      var points = 0;
+                                      for (var x=0;x<workItems.length;x++) {
+                                          iterationMap[workItems[x].fields['System.IterationPath']] = workItems[x].fields['System.IterationPath'];
+                                          var curPoints = workItems[x].fields['Microsoft.VSTS.Scheduling.StoryPoints'];
+                                          if (curPoints === undefined) {
+                                            curPoints = workItems[x].fields['Microsoft.VSTS.Scheduling.Effort'];
+                                          }
+                                          if (curPoints != undefined) {
+                                            points = points + curPoints;
+                                          }
+                                      }
+                                      var iterations = Object.keys(iterationMap).length;
+                                      var velocity = (points / iterations).toFixed(1);
+
+                                      // Create a list with query details
+                                      var $list = $('<ul>');
+                                      $list.append($('<li>').text("Iterations: " + iterations));
+                                      $list.append($('<li>').text("Points: " + points));
+                                      $list.append($('</ul>'));
+
+                                      // Append the list to the query-info-container
+                                      var $container = $('#query-info-container');
+                                      $container.empty();
+                                      $container.append($list);
+
+                                      var $velocityDiv = $('#velocity');
+                                      $velocityDiv.empty();
+                                      $velocityDiv.append(velocity);
+
+                                      return WidgetHelpers.WidgetStatusHelper.Success();
+
+                                  })
+
+
+
+                              }, function (error) {
+                                  return WidgetHelpers.WidgetStatusHelper.Failure(error.message);
+                              });
+                  }
+
+                  return {
+                    load: function (widgetSettings) {
+                        var settings = JSON.parse(widgetSettings.customSettings.data);
+                        var color = "#009ccc";
+                        if (settings && settings.color) {
+                            color = settings.color;
+                        }
+
+                        var $title = $('h2.title');
+                        $title.text(widgetSettings.name);
+                        $("#outer-container").css('background-color', color);
+
+                        return getQueryInfo(widgetSettings);
+                    },
+                    reload: function (widgetSettings) {
+                      var settings = JSON.parse(widgetSettings.customSettings.data);
+                      var color = "#009ccc";
+                      if (settings && settings.color) {
+                          color = settings.color;
+                      }
+
+                      var $title = $('h2.title');
+                      $title.text(widgetSettings.name);
+                      $("#outer-container").css('background-color', color);
+
+                      return WidgetHelpers.WidgetStatusHelper.Success();
+                    }
+                  }
+                });
+                VSS.notifyLoadSucceeded();
+            });
+        </script>
+
+    </head>
+    <body>
+        <div id="outer-container" class="widget" style="background-color: #009ccc; color: #fff;">
+            <h2 class="title"></h2>
+            <div id="velocity" class="big-count"></div>
+            <div id="query-info-container"></div>
+        </div>
+    </body>
+</html>

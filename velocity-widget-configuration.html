@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="sdk/scripts/VSS.SDK.min.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.js"></script>
+        <script src="sdk/scripts/jquery.simplecolorpicker.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/jquery.simplecolorpicker.css">
+
+        <script type="text/javascript">
+            VSS.init({
+                explicitNotifyLoaded: true,
+                usePlatformStyles: true
+            });
+
+            VSS.require("TFS/Dashboards/WidgetHelpers", function (WidgetHelpers) {
+                WidgetHelpers.IncludeWidgetConfigurationStyles();
+                VSS.register("VelocityWidget.Configuration", function () {
+                    var $colorDropdown = $("#color-picker");
+                    return {
+                        load: function (widgetSettings, widgetConfigurationContext) {
+
+                            var settings = JSON.parse(widgetSettings.customSettings.data);
+                            if (settings && settings.color) {
+                                $colorDropdown.val(settings.color);
+                            }
+
+                            $('#color-picker').simplecolorpicker();
+                            $('#color-picker').simplecolorpicker('selectColor', settings.color);
+                            //$('#color-picker').simplecolorpicker('destroy');
+
+                            $colorDropdown.on("change", function () {
+                                var customSettings = {
+                                   data: JSON.stringify({
+                                           color: $colorDropdown.val()
+                                       })
+                                };
+                                var eventName = WidgetHelpers.WidgetEvent.ConfigurationChange;
+                                var eventArgs = WidgetHelpers.WidgetEvent.Args(customSettings);
+                                widgetConfigurationContext.notify(eventName, eventArgs);
+                            });
+
+                            return WidgetHelpers.WidgetStatusHelper.Success();
+                        },
+                        onSave: function () {
+                            var customSettings = {
+                                data: JSON.stringify({
+                                    color: $("#color-picker").val(),
+                                })
+                            };
+                            return WidgetHelpers.WidgetConfigurationSave.Valid(customSettings);
+                        }
+                    }
+                });
+                VSS.notifyLoadSucceeded();
+            });
+        </script>
+
+
+    </head>
+    <body>
+      <div class="container">
+      <fieldset>
+        <label class="label">Color: </label>
+
+        <select id="color-picker" name="colorpicker">
+          <option value="#009ccc">Blue</option>
+          <option value="#f58b1f">Orange</option>
+          <option value="#fbbc3d">Yellow</option>
+          <option value="#68217a">Purple</option>
+        </select>
+      </fieldset>
+    </div>
+    </body>
+</html>
