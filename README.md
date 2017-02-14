@@ -1,1 +1,1 @@
-# Let's add some helpful stuff here!
+# Visual Studio Team Services Velocity Dashboard Extension
