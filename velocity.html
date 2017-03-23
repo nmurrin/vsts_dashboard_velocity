@@ -9,12 +9,15 @@
                 usePlatformStyles: true
             });
 
+            /* We need to use the WorkItemTracking RestClient to retrieve work item info */
             VSS.require(["TFS/Dashboards/WidgetHelpers", "TFS/WorkItemTracking/RestClient"], function (WidgetHelpers, TFS_Wit_WebApi) {
                 WidgetHelpers.IncludeWidgetStyles();
                 VSS.register("VelocityWidget", function () {
 
+                  /* Retrieve the projectId for the current project */
                   var projectId = VSS.getWebContext().project.id;
 
+                  /* Query to retrieve completed work items */
                   var query = {
                           query: "SELECT [System.AssignedTo] FROM WorkItem WHERE [System.TeamProject] = '" + VSS.getWebContext().project.name + "' AND [System.State] IN ('Closed', 'Done')"
                       };
@@ -29,8 +32,14 @@
                                 return TFS_Wit_WebApi.getClient().getWorkItems(openWorkItems)
                                   .then(function(workItems) {
 
+                                      /* Map of completed points by iteration */
                                       var iterationMap = {};
                                       var points = 0;
+
+                                      /* For each completed item
+                                         - create a map entry for each distinct iteration
+                                         - add points to the total points
+                                      */
                                       for (var x=0;x<workItems.length;x++) {
                                           iterationMap[workItems[x].fields['System.IterationPath']] = workItems[x].fields['System.IterationPath'];
                                           var curPoints = workItems[x].fields['Microsoft.VSTS.Scheduling.StoryPoints'];
@@ -41,7 +50,10 @@
                                             points = points + curPoints;
                                           }
                                       }
+                                      /* The number of iterations (that we found completed items in) */
                                       var iterations = Object.keys(iterationMap).length;
+
+                                      /* Velocity is just the total points / number of iterations */
                                       var velocity = (points / iterations).toFixed(1);
 
                                       // Create a list with query details
@@ -63,14 +75,13 @@
 
                                   })
 
-
-
                               }, function (error) {
                                   return WidgetHelpers.WidgetStatusHelper.Failure(error.message);
                               });
                   }
 
                   return {
+                    /* Apply our color setting */
                     load: function (widgetSettings) {
                         var settings = JSON.parse(widgetSettings.customSettings.data);
                         var color = "#009ccc";
